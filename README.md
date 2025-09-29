@@ -1,0 +1,299 @@
+# Bambu Filament Profiles for Sovol SV08 Max
+
+![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)
+![BambuStudio](https://img.shields.io/badge/BambuStudio-1.9.0.14+-green.svg)
+![Profiles](https://img.shields.io/badge/profiles-44-orange.svg)
+
+This repository contains converted Bambu Lab filament profiles for use with the Sovol SV08 Max printer in BambuStudio.
+
+**Current Version:** 1.0.0 | [Changelog](CHANGELOG.md)
+
+## Overview
+
+BambuStudio includes comprehensive filament profiles for Bambu Lab printers (P1S, X1C, etc.) but not for third-party printers like the Sovol SV08 Max. This project converts all 44 Bambu filament profiles to work as system presets for the Sovol SV08 Max.
+
+## File Structure
+
+```
+├── Install Sovol Profiles.app.command  # macOS GUI installer (double-click)
+├── Install Sovol Profiles.bat          # Windows GUI installer (double-click)
+├── Install-SovolProfiles.ps1           # Windows PowerShell GUI script
+├── install.sh                          # macOS command-line installer
+├── install.ps1                         # Windows command-line installer
+├── README.md                           # This file
+├── CLAUDE.md                           # Development process documentation
+├── Sovol sv08 max 0.4 nozzle.json     # User machine configuration
+└── system/
+    ├── Sovol.json                      # Vendor configuration file
+    └── Sovol/
+        ├── machine/
+        │   └── Sovol sv08 max.json    # Machine model definition
+        └── filament/
+            └── [44 filament profiles]  # All Bambu filament profiles
+```
+
+## Included Filament Profiles
+
+**PLA Variants (14):** Basic, Aero, Dynamic, Galaxy, Glow, Lite, Marble, Matte, Metal, Silk, Silk+, Sparkle, Tough, Tough+, Translucent, Wood, PLA-CF
+
+**PETG Variants (5):** Basic, HF, Translucent, PETG-CF, PET-CF
+
+**ABS Variants (2):** ABS, ABS-GF
+
+**ASA Variants (3):** ASA, ASA-Aero, ASA-CF
+
+**Engineering Materials (9):** PA-CF, PA6-CF, PA6-GF, PAHT-CF, PC, PC FR, PPA-CF
+
+**Flexible (5):** TPU 85A, TPU 90A, TPU 95A, TPU 95A HF, TPU for AMS
+
+**Support Materials (5):** Support For PLA, Support G, Support W, Support for ABS, PVA
+
+## Conversion Process
+
+### 1. Understanding BambuStudio's System Profile Structure
+
+BambuStudio uses a vendor system with the following components:
+
+- **Vendor JSON** (`Sovol.json`): Registry file listing all machine models, processes, and filaments
+- **Machine Model**: Defines printer specifications and default materials
+- **Filament Profiles**: Complete material settings without inheritance
+
+### 2. Key Differences from Bambu Printers
+
+The Sovol SV08 Max requires different settings than Bambu printers:
+
+- **Extruder Type**: Direct drive (vs Bambu's direct drive with different mechanics)
+- **Retraction**: 0.8-1.0mm (vs Bambu's settings)
+- **Bed Size**: 500x500x500mm
+- **No AMS Support**: Single extruder configuration
+
+### 3. Conversion Steps
+
+#### Step 1: Create Base User Profiles
+
+1. Started with Bambu P1S 0.4mm nozzle profiles as the base
+2. Created user profiles for each filament type with full settings
+3. Adjusted settings for direct drive extruder:
+   - Reduced retraction distance
+   - Modified retraction speed
+   - Updated compatible printer field
+
+#### Step 2: Resolve Inheritance Chains
+
+Bambu profiles use deep inheritance:
+```
+Bambu PC @BBL P1S.json
+  → inherits: Bambu PC @BBL X1C.json
+    → inherits: Bambu PC @base.json
+      → inherits: fdm_filament_pc
+```
+
+System profiles cannot use `inherits` from other vendors, so we:
+1. Merged all inherited settings from parent templates
+2. Flattened into complete standalone profiles
+3. Removed all `inherits` fields
+
+#### Step 3: Create System Vendor Structure
+
+1. Created `Sovol.json` vendor configuration matching BBL.json structure:
+   ```json
+   {
+       "name": "Sovol",
+       "version": "01.00.00.01",
+       "machine_model_list": [...],
+       "process_list": [],
+       "filament_list": [...]
+   }
+   ```
+
+2. Created machine model definition with:
+   - Printer specifications
+   - Default materials list
+   - Compatible nozzle sizes
+
+3. Set all profiles to `"from": "system"` instead of `"from": "User"`
+
+#### Step 4: Fix Profile Naming
+
+- Maintained Bambu naming convention: `Bambu [Material] @Sovol sv08 max 0.4 nozzle`
+- Used space before `@` symbol to match BambuStudio parser expectations
+- Updated all `compatible_printers` fields to reference Sovol printer
+
+### 4. Critical Settings Modified
+
+Each profile was modified with:
+
+```json
+{
+    "from": "system",
+    "compatible_printers": ["Sovol sv08 max 0.4 nozzle"],
+    "filament_retraction_length": ["0.8"],
+    "filament_retraction_speed": ["30"],
+    "filament_extruder_variant": ["Direct Drive Standard"]
+}
+```
+
+Temperature settings, flow ratios, and material-specific parameters were preserved from Bambu profiles.
+
+## Machine Configuration
+
+The repository includes `Sovol sv08 max 0.4 nozzle.json` - a complete user machine configuration for the Sovol SV08 Max. This file contains:
+
+- Printer dimensions (500x500x500mm build volume)
+- Machine limits (acceleration, speed, jerk)
+- Start/end G-code configured for Klipper
+- Timelapse support with `TIMELAPSE_TAKE_FRAME`
+- Direct drive extruder settings
+- Retraction settings optimized for SV08 Max
+
+This configuration works with the custom Klipper macros that include proper temperature management and bed leveling.
+
+### Installing the Machine Configuration
+
+Copy to:
+```
+~/Library/Application Support/BambuStudio/user/[user_id]/machine/base/
+```
+
+Or create a new printer profile in BambuStudio and import this JSON file.
+
+## Installation
+
+### Quick Install (Recommended)
+
+**macOS:**
+1. Double-click `Install Sovol Profiles.app.command`
+2. Follow the on-screen prompts
+3. Restart BambuStudio
+
+**Windows:**
+1. Double-click `Install Sovol Profiles.bat`
+2. Follow the GUI installer
+3. Restart BambuStudio
+
+The installers will:
+- Check for existing installations and offer to back them up
+- Install all 44 filament profiles
+- Install the machine model
+- Optionally install the machine configuration
+- Show progress during installation
+
+### Manual Installation
+
+If you prefer to install manually:
+
+1. Copy the entire `system/` directory to:
+
+   **macOS:**
+   ```
+   ~/Library/Application Support/BambuStudio/system/
+   ```
+
+   **Windows:**
+   ```
+   %APPDATA%\BambuStudio\system\
+   ```
+
+2. The final structure should be:
+   ```
+   BambuStudio/system/
+   ├── Sovol.json
+   ├── Sovol/
+   │   ├── machine/
+   │   │   └── Sovol sv08 max.json
+   │   └── filament/
+   │       └── [44 .json files]
+   └── BBL/
+       └── [existing Bambu files]
+   ```
+
+3. (Optional) Copy `Sovol sv08 max 0.4 nozzle.json` to:
+
+   **macOS:**
+   ```
+   ~/Library/Application Support/BambuStudio/user/[user_id]/machine/base/
+   ```
+
+   **Windows:**
+   ```
+   %APPDATA%\BambuStudio\user\[user_id]\machine\base\
+   ```
+
+4. Restart BambuStudio
+
+5. The Sovol vendor and all 44 filament profiles should now appear in the printer/filament selection dropdowns
+
+## Verification
+
+After installation:
+
+1. Open BambuStudio
+2. Select "Sovol sv08 max 0.4 nozzle" as your printer
+3. Check filament dropdown - you should see all 44 Bambu filament profiles with "@Sovol sv08 max 0.4 nozzle" suffix
+4. Profiles should load without errors
+
+## Troubleshooting
+
+### Profiles Not Appearing
+
+- Ensure `Sovol.json` is in the correct location
+- Verify `machine_model_list` includes the Sovol sv08 max entry
+- Check that all filament files exist in the paths specified in `Sovol.json`
+
+### Profile Loading Errors
+
+- Confirm no `inherits` fields remain in filament profiles
+- Verify all profiles have `"from": "system"`
+- Check that `compatible_printers` field matches machine name exactly
+
+### Missing Settings
+
+- Profiles should be 300+ lines with complete settings
+- If a profile seems incomplete, re-copy from this repository
+
+## Technical Notes
+
+- All profiles use BambuStudio version `1.9.0.14` format
+- Profiles are tested with BambuStudio 01.09.00.14 and later
+- No changes to Bambu's original material specifications (temps, flow ratios, etc.)
+- Only printer-specific settings (retraction, compatibility) were modified
+
+## Future Enhancements
+
+Potential additions:
+- Additional nozzle sizes (0.2mm, 0.6mm, 0.8mm)
+- Print process profiles optimized for SV08 Max
+- Custom bed models and textures
+- Additional third-party filament profiles
+
+## License
+
+These profiles are derived from Bambu Lab's open configuration files and modified for Sovol SV08 Max compatibility. Use at your own risk. Always verify settings before printing.
+
+## Contributing
+
+To add new profiles or improve existing ones:
+
+1. Test thoroughly on actual hardware
+2. Document any changes to material settings
+3. Maintain compatibility with BambuStudio's profile format
+4. Update this README with changes
+
+## Version History
+
+See [CHANGELOG.md](CHANGELOG.md) for detailed version history and release notes.
+
+### Release Summary
+
+- **v1.0.0** (2024-09-29) - Initial release
+  - 44 Bambu filament profiles
+  - System vendor configuration
+  - Machine model definition
+  - GUI and CLI installers for macOS and Windows
+  - Complete documentation
+
+## Credits
+
+- Original Bambu Lab profiles: Bambu Lab
+- Sovol SV08 Max conversion: Community effort
+- BambuStudio: Bambu Lab
