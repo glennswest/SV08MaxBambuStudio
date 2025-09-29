@@ -1,0 +1,12 @@
+{
+    "type": "machine_model",
+    "name": "Sovol sv08 max",
+    "nozzle_diameter": "0.4",
+    "bed_model": "",
+    "bed_texture": "",
+    "default_bed_type": "Textured PEI Plate",
+    "family": "Sovol",
+    "machine_tech": "FFF",
+    "model_id": "SV08MAX",
+    "default_materials": "Bambu PLA Basic @Sovol sv08 max 0.4 nozzle;Bambu PLA Matte @Sovol sv08 max 0.4 nozzle;Bambu PETG Basic @Sovol sv08 max 0.4 nozzle;Bambu ABS @Sovol sv08 max 0.4 nozzle"
+}

@@ -1,0 +1,192 @@
+{
+    "name": "Sovol",
+    "version": "01.00.00.01",
+    "force_update": "0",
+    "description": "Sovol 3D Printers",
+    "machine_model_list": [
+        {
+            "name": "Sovol sv08 max",
+            "sub_path": "machine/Sovol sv08 max.json"
+        }
+    ],
+    "process_list": [],
+    "filament_list": [
+        {
+            "name": "Bambu ABS @Sovol sv08 max 0.4 nozzle",
+            "sub_path": "filament/Bambu ABS @Sovol sv08 max 0.4 nozzle.json"
+        },
+        {
+            "name": "Bambu ABS-GF @Sovol sv08 max 0.4 nozzle",
+            "sub_path": "filament/Bambu ABS-GF @Sovol sv08 max 0.4 nozzle.json"
+        },
+        {
+            "name": "Bambu ASA @Sovol sv08 max 0.4 nozzle",
+            "sub_path": "filament/Bambu ASA @Sovol sv08 max 0.4 nozzle.json"
+        },
+        {
+            "name": "Bambu ASA-Aero @Sovol sv08 max 0.4 nozzle",
+            "sub_path": "filament/Bambu ASA-Aero @Sovol sv08 max 0.4 nozzle.json"
+        },
+        {
+            "name": "Bambu ASA-CF @Sovol sv08 max 0.4 nozzle",
+            "sub_path": "filament/Bambu ASA-CF @Sovol sv08 max 0.4 nozzle.json"
+        },
+        {
+            "name": "Bambu PA-CF @Sovol sv08 max 0.4 nozzle",
+            "sub_path": "filament/Bambu PA-CF @Sovol sv08 max 0.4 nozzle.json"
+        },
+        {
+            "name": "Bambu PA6-CF @Sovol sv08 max 0.4 nozzle",
+            "sub_path": "filament/Bambu PA6-CF @Sovol sv08 max 0.4 nozzle.json"
+        },
+        {
+            "name": "Bambu PA6-GF @Sovol sv08 max 0.4 nozzle",
+            "sub_path": "filament/Bambu PA6-GF @Sovol sv08 max 0.4 nozzle.json"
+        },
+        {
+            "name": "Bambu PAHT-CF @Sovol sv08 max 0.4 nozzle",
+            "sub_path": "filament/Bambu PAHT-CF @Sovol sv08 max 0.4 nozzle.json"
+        },
+        {
+            "name": "Bambu PC @Sovol sv08 max 0.4 nozzle",
+            "sub_path": "filament/Bambu PC @Sovol sv08 max 0.4 nozzle.json"
+        },
+        {
+            "name": "Bambu PC FR @Sovol sv08 max 0.4 nozzle",
+            "sub_path": "filament/Bambu PC FR @Sovol sv08 max 0.4 nozzle.json"
+        },
+        {
+            "name": "Bambu PET-CF @Sovol sv08 max 0.4 nozzle",
+            "sub_path": "filament/Bambu PET-CF @Sovol sv08 max 0.4 nozzle.json"
+        },
+        {
+            "name": "Bambu PETG Basic @Sovol sv08 max 0.4 nozzle",
+            "sub_path": "filament/Bambu PETG Basic @Sovol sv08 max 0.4 nozzle.json"
+        },
+        {
+            "name": "Bambu PETG HF @Sovol sv08 max 0.4 nozzle",
+            "sub_path": "filament/Bambu PETG HF @Sovol sv08 max 0.4 nozzle.json"
+        },
+        {
+            "name": "Bambu PETG Translucent @Sovol sv08 max 0.4 nozzle",
+            "sub_path": "filament/Bambu PETG Translucent @Sovol sv08 max 0.4 nozzle.json"
+        },
+        {
+            "name": "Bambu PETG-CF @Sovol sv08 max 0.4 nozzle",
+            "sub_path": "filament/Bambu PETG-CF @Sovol sv08 max 0.4 nozzle.json"
+        },
+        {
+            "name": "Bambu PLA Aero @Sovol sv08 max 0.4 nozzle",
+            "sub_path": "filament/Bambu PLA Aero @Sovol sv08 max 0.4 nozzle.json"
+        },
+        {
+            "name": "Bambu PLA Basic @Sovol sv08 max 0.4 nozzle",
+            "sub_path": "filament/Bambu PLA Basic @Sovol sv08 max 0.4 nozzle.json"
+        },
+        {
+            "name": "Bambu PLA Dynamic @Sovol sv08 max 0.4 nozzle",
+            "sub_path": "filament/Bambu PLA Dynamic @Sovol sv08 max 0.4 nozzle.json"
+        },
+        {
+            "name": "Bambu PLA Galaxy @Sovol sv08 max 0.4 nozzle",
+            "sub_path": "filament/Bambu PLA Galaxy @Sovol sv08 max 0.4 nozzle.json"
+        },
+        {
+            "name": "Bambu PLA Glow @Sovol sv08 max 0.4 nozzle",
+            "sub_path": "filament/Bambu PLA Glow @Sovol sv08 max 0.4 nozzle.json"
+        },
+        {
+            "name": "Bambu PLA Lite @Sovol sv08 max 0.4 nozzle",
+            "sub_path": "filament/Bambu PLA Lite @Sovol sv08 max 0.4 nozzle.json"
+        },
+        {
+            "name": "Bambu PLA Marble @Sovol sv08 max 0.4 nozzle",
+            "sub_path": "filament/Bambu PLA Marble @Sovol sv08 max 0.4 nozzle.json"
+        },
+        {
+            "name": "Bambu PLA Matte @Sovol sv08 max 0.4 nozzle",
+            "sub_path": "filament/Bambu PLA Matte @Sovol sv08 max 0.4 nozzle.json"
+        },
+        {
+            "name": "Bambu PLA Metal @Sovol sv08 max 0.4 nozzle",
+            "sub_path": "filament/Bambu PLA Metal @Sovol sv08 max 0.4 nozzle.json"
+        },
+        {
+            "name": "Bambu PLA Silk @Sovol sv08 max 0.4 nozzle",
+            "sub_path": "filament/Bambu PLA Silk @Sovol sv08 max 0.4 nozzle.json"
+        },
+        {
+            "name": "Bambu PLA Silk+ @Sovol sv08 max 0.4 nozzle",
+            "sub_path": "filament/Bambu PLA Silk+ @Sovol sv08 max 0.4 nozzle.json"
+        },
+        {
+            "name": "Bambu PLA Sparkle @Sovol sv08 max 0.4 nozzle",
+            "sub_path": "filament/Bambu PLA Sparkle @Sovol sv08 max 0.4 nozzle.json"
+        },
+        {
+            "name": "Bambu PLA Tough @Sovol sv08 max 0.4 nozzle",
+            "sub_path": "filament/Bambu PLA Tough @Sovol sv08 max 0.4 nozzle.json"
+        },
+        {
+            "name": "Bambu PLA Tough+ @Sovol sv08 max 0.4 nozzle",
+            "sub_path": "filament/Bambu PLA Tough+ @Sovol sv08 max 0.4 nozzle.json"
+        },
+        {
+            "name": "Bambu PLA Translucent @Sovol sv08 max 0.4 nozzle",
+            "sub_path": "filament/Bambu PLA Translucent @Sovol sv08 max 0.4 nozzle.json"
+        },
+        {
+            "name": "Bambu PLA Wood @Sovol sv08 max 0.4 nozzle",
+            "sub_path": "filament/Bambu PLA Wood @Sovol sv08 max 0.4 nozzle.json"
+        },
+        {
+            "name": "Bambu PLA-CF @Sovol sv08 max 0.4 nozzle",
+            "sub_path": "filament/Bambu PLA-CF @Sovol sv08 max 0.4 nozzle.json"
+        },
+        {
+            "name": "Bambu PPA-CF @Sovol sv08 max 0.4 nozzle",
+            "sub_path": "filament/Bambu PPA-CF @Sovol sv08 max 0.4 nozzle.json"
+        },
+        {
+            "name": "Bambu PVA @Sovol sv08 max 0.4 nozzle",
+            "sub_path": "filament/Bambu PVA @Sovol sv08 max 0.4 nozzle.json"
+        },
+        {
+            "name": "Bambu Support For PLA @Sovol sv08 max 0.4 nozzle",
+            "sub_path": "filament/Bambu Support For PLA @Sovol sv08 max 0.4 nozzle.json"
+        },
+        {
+            "name": "Bambu Support G @Sovol sv08 max 0.4 nozzle",
+            "sub_path": "filament/Bambu Support G @Sovol sv08 max 0.4 nozzle.json"
+        },
+        {
+            "name": "Bambu Support W @Sovol sv08 max 0.4 nozzle",
+            "sub_path": "filament/Bambu Support W @Sovol sv08 max 0.4 nozzle.json"
+        },
+        {
+            "name": "Bambu Support for ABS @Sovol sv08 max 0.4 nozzle",
+            "sub_path": "filament/Bambu Support for ABS @Sovol sv08 max 0.4 nozzle.json"
+        },
+        {
+            "name": "Bambu TPU 85A @Sovol sv08 max 0.4 nozzle",
+            "sub_path": "filament/Bambu TPU 85A @Sovol sv08 max 0.4 nozzle.json"
+        },
+        {
+            "name": "Bambu TPU 90A @Sovol sv08 max 0.4 nozzle",
+            "sub_path": "filament/Bambu TPU 90A @Sovol sv08 max 0.4 nozzle.json"
+        },
+        {
+            "name": "Bambu TPU 95A @Sovol sv08 max 0.4 nozzle",
+            "sub_path": "filament/Bambu TPU 95A @Sovol sv08 max 0.4 nozzle.json"
+        },
+        {
+            "name": "Bambu TPU 95A HF @Sovol sv08 max 0.4 nozzle",
+            "sub_path": "filament/Bambu TPU 95A HF @Sovol sv08 max 0.4 nozzle.json"
+        },
+        {
+            "name": "Bambu TPU for AMS @Sovol sv08 max 0.4 nozzle",
+            "sub_path": "filament/Bambu TPU for AMS @Sovol sv08 max 0.4 nozzle.json"
+        }
+    ],
+    "machine_list": []
+}
