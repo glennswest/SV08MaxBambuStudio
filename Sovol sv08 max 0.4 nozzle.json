@@ -60,7 +60,7 @@
     "long_retractions_when_cut": [
         "0"
     ],
-    "machine_end_gcode": "PRINT_END",
+    "machine_end_gcode": "DEMON_END",
     "machine_load_filament_time": "0",
     "machine_max_acceleration_e": [
         "5000",
@@ -132,7 +132,7 @@
     ],
     "machine_pause_gcode": "PAUSE",
     "machine_prepare_compensation_time": "260",
-    "machine_start_gcode": "M190 S[bed_temperature_initial_layer_single]\nM109 S[nozzle_temperature_initial_layer]\nPRINT_START EXTRUDER=[nozzle_temperature_initial_layer] BED=[bed_temperature_initial_layer_single]\n; You can use following code instead if your PRINT_START macro support Chamber and print area bedmesh\n; PRINT_START EXTRUDER=[nozzle_temperature_initial_layer] BED=[bed_temperature_initial_layer_single] Chamber=[chamber_temperature] PRINT_MIN={first_layer_print_min[0]},{first_layer_print_min[1]} PRINT_MAX={first_layer_print_max[0]},{first_layer_print_max[1]}",
+    "machine_start_gcode": "DEMON_START EXTRUDER=[nozzle_temperature_initial_layer] BED=[bed_temperature_initial_layer_single]",
     "machine_switch_extruder_time": "5",
     "machine_unload_filament_time": "0",
     "master_extruder_id": "1",
