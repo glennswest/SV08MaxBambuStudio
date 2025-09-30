@@ -20,9 +20,16 @@ BambuStudio includes comprehensive filament profiles for Bambu Lab printers (P1S
 ├── Install-SovolProfiles.ps1           # Windows PowerShell GUI script
 ├── install.sh                          # macOS command-line installer
 ├── install.ps1                         # Windows command-line installer
+├── install_demon_essentials.sh         # Demon Klipper Essentials installer
 ├── README.md                           # This file
 ├── CLAUDE.md                           # Development process documentation
 ├── Sovol sv08 max 0.4 nozzle.json     # User machine configuration
+├── test_start_end_macros.gcode        # Test G-code for macro verification
+├── factory_sv08_backup/                # Factory configuration backup
+│   ├── README.md                       # Backup documentation
+│   ├── config/                         # Klipper configuration files
+│   ├── database/                       # Moonraker database
+│   └── [system information files]
 └── system/
     ├── Sovol.json                      # Vendor configuration file
     └── Sovol/
@@ -258,6 +265,76 @@ After installation:
 - No changes to Bambu's original material specifications (temps, flow ratios, etc.)
 - Only printer-specific settings (retraction, compatibility) were modified
 
+## Klipper Configuration
+
+### Factory Backup
+
+The `factory_sv08_backup/` directory contains a complete backup of the printer's configuration after successful eddy current probe calibration on September 30, 2025. This includes:
+
+- **Configuration files** (19 files): printer.cfg, Macro.cfg, timelapse.cfg, and more
+- **Database**: Moonraker database with bed meshes and job history
+- **System information**: Klipper version, network configuration, running services
+- **Calibration data**: Complete eddy current probe calibration (LDC1612)
+  - Drive current: 15
+  - Probe accuracy: 0.0014mm standard deviation
+  - 60x60 bed mesh (3600 points)
+
+See `factory_sv08_backup/README.md` for full documentation and restoration instructions.
+
+### Demon Klipper Essentials
+
+**Installation Script**: `install_demon_essentials.sh`
+
+This repository includes an automated installer for [Demon Klipper Essentials Unified](https://github.com/3DPrintDemon/Demon_Klipper_Essentials_Unified), a comprehensive macro system that enhances Klipper functionality with:
+
+- Advanced print start/end macros with heat soak management
+- Adaptive bed meshing and pressure advance
+- KAMP_LiTE integration for smart parking and adaptive purge
+- Bed fan monitoring and chamber heater control
+- Z-offset calibration helpers
+
+**Usage:**
+```bash
+./install_demon_essentials.sh
+```
+
+The installer will:
+1. Create backup of current configuration
+2. Install Demon Essentials and prerequisites
+3. Configure required Klipper sections
+4. Add Demon includes to printer.cfg (before SAVE_CONFIG)
+5. Restart Klipper and run diagnostics
+
+**Important**: The installer correctly places Demon includes BEFORE Klipper's SAVE_CONFIG section to preserve autosaved calibration values.
+
+### Custom Macros
+
+The printer configuration includes custom START_PRINT and END_PRINT macros configured for BambuStudio:
+
+**START_PRINT**:
+- Accepts `EXTRUDER` and `BED` temperature parameters from slicer
+- Heats bed and nozzle to target temperatures
+- Performs G28 homing and bed mesh calibration
+- Cleans nozzle and draws purge line
+
+**END_PRINT**:
+- Retracts filament while hot (4mm total)
+- Turns off heaters and fans
+- Lifts Z by 30mm
+- Homes X and Y axes
+- Moves to back right corner (X500 Y500) for safety
+
+**PRINT_START**: Alias for START_PRINT (BambuStudio compatibility)
+
+### Eddy Current Probe
+
+The SV08 Max uses an LDC1612 eddy current probe for Z-homing and bed meshing:
+
+- **Custom Klipper branch**: `klipper-eddy_contact_probe`
+- **Probe offsets**: X=-19.8mm, Y=-0.75mm, Z=3.50mm
+- **Calibrated settings** preserved in SAVE_CONFIG
+- **Best practices**: Calibrate with heated bed (70°C) for accurate results
+
 ## Future Enhancements
 
 Potential additions:
@@ -265,6 +342,7 @@ Potential additions:
 - Print process profiles optimized for SV08 Max
 - Custom bed models and textures
 - Additional third-party filament profiles
+- Advanced Demon Essentials configuration templates
 
 ## License
 

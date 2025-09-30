@@ -172,6 +172,115 @@ User requested system presets instead of user profiles. This triggered multiple 
 
 **Result**: ✅ All 44 profiles now appear in BambuStudio as system presets
 
+### Phase 6: Network Configuration (Resolved)
+
+**Problem**: Printer had two IP addresses causing Moonraker warnings
+- Primary: 192.168.1.106 (NetworkManager)
+- Secondary: 192.168.1.108 (dhcpcd)
+
+**Root Cause**: Both NetworkManager and dhcpcd running simultaneously
+
+**Solution**:
+```bash
+systemctl stop dhcpcd
+systemctl mask dhcpcd
+pkill dhcpcd
+nmcli connection modify gswlair ipv4.method manual \
+  ipv4.addresses 192.168.1.106/24 \
+  ipv4.gateway 192.168.1.1 \
+  ipv4.dns 192.168.1.51
+```
+
+**Result**: ✅ Single static IP configured, DHCP disabled
+
+### Phase 7: Eddy Current Probe Calibration (Critical)
+
+**Problem**: Test print failed with "No trigger on probe after full movement"
+- Probe reported z=509mm (wrong - should be ~3-5mm)
+- Bed mesh calibration failing
+- Z-homing unreliable
+
+**Root Cause**: LDC1612 eddy current probe severely miscalibrated
+
+**Solution**: Complete recalibration sequence
+1. Homed all axes
+2. Heated bed to 70°C (critical for stability)
+3. Ran `LDC_CALIBRATE_DRIVE_CURRENT CHIP=eddy`
+   - Result: `reg_drive_current = 15`
+4. Ran `PROBE_ACCURACY`
+   - Z height: 3.5mm (correct!)
+   - Range: 0.0047mm
+   - Std dev: 0.0014mm (excellent repeatability)
+5. Ran `PROBE_CALIBRATE` and `ACCEPT`
+6. Ran `SAVE_CONFIG` (Klipper auto-restart)
+7. Successfully completed 60x60 bed mesh (3600 points)
+
+**Result**: ✅ Probe now reads z=3.5mm with 0.0014mm accuracy
+
+**Key Learning**: Eddy probes are temperature-sensitive - always calibrate with heated bed at typical printing temperature
+
+### Phase 8: Factory Configuration Backup
+
+**Request**: Create complete backup after successful probe calibration
+
+**Actions**:
+1. Backed up all configuration files (19 files, 240KB)
+2. Copied Moonraker database with bed meshes (60KB)
+3. Captured system information:
+   - Klipper version (custom branch: `klipper-eddy_contact_probe`)
+   - Network configuration (static IP 192.168.1.106)
+   - Running services (klipper, moonraker, nginx, moonraker-obico)
+4. Created comprehensive README.md with restoration instructions
+
+**Backup Location**: `factory_sv08_backup/`
+
+**Result**: ✅ Complete factory restore point preserved with full documentation
+
+### Phase 9: Demon Klipper Essentials Installation
+
+**Request**: Install Demon_Klipper_Essentials_Unified macro system
+
+**Challenge**: Initial installation script failed with config error:
+```
+Config error: Option 'control' in section 'heater_bed' must be specified
+```
+
+**Root Cause Discovery**:
+- Klipper's `SAVE_CONFIG` section contains autosaved calibration values (PID, probe data)
+- SAVE_CONFIG **must always be at the end** of printer.cfg
+- Initial script appended Demon includes AFTER SAVE_CONFIG
+- This invalidated all autosaved values including heater_bed PID control
+
+**Solution**: Modified installation to insert Demon includes BEFORE SAVE_CONFIG marker
+```bash
+# Find line 415 (SAVE_CONFIG marker)
+# Split file: lines 1-414 → top, lines 415+ → bottom
+# Insert Demon config between them
+head -414 printer.cfg > top.cfg
+tail -n +415 printer.cfg > bottom.cfg
+cat top.cfg demon_config.txt bottom.cfg > printer.cfg
+```
+
+**Configuration Changes**:
+1. Added `[force_move]` with `enable_force_move: True`
+2. Updated `[idle_timeout]` to use `_DEMON_IDLE_TIMEOUT`
+3. Commented out existing START_PRINT/PRINT_START macros (conflict prevention)
+4. Added Demon includes:
+   ```
+   [include ./Demon_Klipper_Essentials_Unified/*.cfg]
+   [include ./Demon_User_Files/*.cfg]
+   ```
+
+**Verification**:
+- Klipper state: **ready**
+- 14 Demon/KAMP objects loaded successfully
+- All autosaved values preserved
+- No configuration errors
+
+**Result**: ✅ Demon Essentials fully installed and operational
+
+**Critical Learning**: When modifying Klipper configs, **NEVER append after SAVE_CONFIG**. Always insert user configuration before the SAVE_CONFIG marker to preserve Klipper's autosave functionality.
+
 ## Key Technical Discoveries
 
 ### 1. BambuStudio Profile Inheritance
@@ -225,6 +334,10 @@ Critical fields for compatibility:
 3. **Missing Machine Model**: Discovered profiles need parent machine definition
 4. **Incomplete Settings**: Merged 4-level deep inheritance chains
 5. **Profile Visibility**: Added machine_model_list to make profiles discoverable
+6. **Dual IP Addresses**: Resolved by disabling dhcpcd and using NetworkManager only
+7. **Eddy Probe Miscalibration**: Fixed with complete recalibration at 70°C bed temp
+8. **Demon Install Config Error**: Resolved by inserting includes before SAVE_CONFIG marker
+9. **END_PRINT Sequence Issues**: Fixed through user corrections (retract before heater off, home XY before Z move)
 
 ## Files Modified/Created
 
@@ -244,10 +357,37 @@ Critical fields for compatibility:
 ### Klipper Configuration (sv08.gw.lo)
 ```
 ~/printer_data/config/
-└── Macro.cfg                                   [MODIFIED]
-    - Added temperature parameters to START_PRINT
-    - Added PRINT_START alias
-    - Added purge line after cleaning
+├── Macro.cfg                                   [MODIFIED]
+│   - Added temperature parameters to START_PRINT
+│   - Added PRINT_START alias
+│   - Added purge line after cleaning
+│   - Commented out conflicting macros for Demon Essentials
+├── printer.cfg                                 [MODIFIED]
+│   - Added [force_move] section
+│   - Updated [idle_timeout] for Demon
+│   - Added Demon includes (before SAVE_CONFIG)
+│   - Preserved all SAVE_CONFIG autosaved values
+├── timelapse.cfg                               [MODIFIED]
+│   - Enabled timelapse: variable_enable: True
+│   - Enabled parking: variable_park.enable: True
+├── Demon_Klipper_Essentials_Unified/          [CREATED]
+│   └── [13 .cfg files]
+├── Demon_User_Files/                           [CREATED]
+│   └── [3 .cfg files]
+└── KAMP_LiTE/                                  [CREATED]
+    └── [3 .cfg files]
+```
+
+### Local Repository
+```
+/Volumes/minihome/gwest/projects/BambuSV08Max/
+├── factory_sv08_backup/                        [CREATED]
+│   ├── README.md
+│   ├── config/ (19 files)
+│   ├── database/
+│   └── [system info files]
+├── install_demon_essentials.sh                 [CREATED]
+└── test_start_end_macros.gcode                 [CREATED]
 ```
 
 ## Lessons Learned
@@ -285,16 +425,31 @@ EOF
 
 ## Final Statistics
 
+### Bambu Profiles
 - **Total Profiles Created**: 44
 - **Profile Categories**: 7 (PLA, PETG, ABS, ASA, Engineering, Flexible, Support)
 - **Lines per Profile**: ~305
 - **Total Configuration Lines**: 13,420+
 - **Iterations Required**: 8
-- **Time Investment**: ~6 hours of debugging and testing
 - **Success Rate**: 100% (all profiles load and display correctly)
+
+### Klipper Configuration
+- **Configuration Files Backed Up**: 19
+- **Database Size**: 60KB (bed meshes and job history)
+- **Eddy Probe Accuracy**: 0.0014mm standard deviation
+- **Bed Mesh Resolution**: 60x60 points (3600 measurements)
+- **Demon Essentials Components**: 13 core files + 3 user files + 3 KAMP files
+- **Demon Objects Loaded**: 14 macros and functions
+
+### Development Timeline
+- **Phase 1-5** (Bambu Profiles): ~6 hours
+- **Phase 6-7** (Network & Probe): ~2 hours
+- **Phase 8-9** (Backup & Demon): ~3 hours
+- **Total Time Investment**: ~11 hours
 
 ## Verification Checklist
 
+### Bambu Profiles
 - [x] All 44 profiles load without errors
 - [x] Profiles appear in filament dropdown
 - [x] Machine model displays correctly
@@ -303,6 +458,17 @@ EOF
 - [x] Compatible printers field set correctly
 - [x] Retraction settings adjusted for direct drive
 - [x] Temperature settings appropriate for SV08 Max
+
+### Klipper Configuration
+- [x] Static IP configured (192.168.1.106)
+- [x] Eddy probe calibrated (0.0014mm accuracy)
+- [x] Bed mesh successful (60x60 grid)
+- [x] Factory backup created with documentation
+- [x] Demon Essentials installed without errors
+- [x] Klipper state: ready
+- [x] All autosaved values preserved
+- [x] START_PRINT and END_PRINT macros functional
+- [x] Timelapse enabled and configured
 
 ## Future Improvements
 
