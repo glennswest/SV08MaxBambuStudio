@@ -1,0 +1,16 @@
+{
+    "result": {
+        "state": "ready",
+        "state_message": "Printer is ready",
+        "hostname": "SPI-XI",
+        "klipper_path": "/home/sovol/klipper",
+        "python_path": "/home/sovol/klippy-env/bin/python",
+        "process_id": 44940,
+        "user_id": 1000,
+        "group_id": 1000,
+        "log_file": "/home/sovol/printer_data/logs/klippy.log",
+        "config_file": "/home/sovol/printer_data/config/printer.cfg",
+        "software_version": "f80d36c-dirty",
+        "cpu_info": "4 core ?"
+    }
+}

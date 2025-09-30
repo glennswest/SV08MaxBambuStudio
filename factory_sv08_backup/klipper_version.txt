@@ -1,0 +1,4 @@
+f80d36c6e 1
+klipper-eddy_contact_probe
+origin	https://github.com/Klipper3d/klipper.git (fetch)
+origin	https://github.com/Klipper3d/klipper.git (push)
