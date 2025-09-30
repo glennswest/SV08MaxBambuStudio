@@ -132,7 +132,7 @@
     ],
     "machine_pause_gcode": "PAUSE",
     "machine_prepare_compensation_time": "260",
-    "machine_start_gcode": "DEMON_START EXTRUDER=[nozzle_temperature_initial_layer] BED=[bed_temperature_initial_layer_single]",
+    "machine_start_gcode": "DEMON_START EXTRUDER=[nozzle_temperature_initial_layer] BED=[bed_temperature_initial_layer_single] DMGCC='v1.1'",
     "machine_switch_extruder_time": "5",
     "machine_unload_filament_time": "0",
     "master_extruder_id": "1",
