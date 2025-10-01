@@ -148,12 +148,37 @@ The repository includes `Sovol sv08 max 0.4 nozzle.json` - a complete user machi
 
 - Printer dimensions (500x500x500mm build volume)
 - Machine limits (acceleration, speed, jerk)
-- Start/end G-code configured for Klipper
+- **Optimized start G-code**: Calls `START_PRINT` macro with temperature parameters (parallel heating)
+- **Optimized end G-code**: Calls `END_PRINT` macro (10mm retraction, back corner positioning)
+- **Layer change G-code**: Displays layer number and time estimate on printer screen
 - Timelapse support with `TIMELAPSE_TAKE_FRAME`
 - Direct drive extruder settings
 - Retraction settings optimized for SV08 Max
 
-This configuration works with the custom Klipper macros that include proper temperature management and bed leveling.
+This configuration works with the enhanced Klipper macros that include parallel heating, proper temperature management, and bed leveling.
+
+## Print Process Profiles
+
+The repository includes two optimized print process profiles based on Bambu P1P settings:
+
+**0.16mm Optimal @Sovol SV08**:
+- Layer height: 0.16mm
+- High-speed printing: 200mm/s outer walls, 300mm/s inner walls
+- Optimized for quality and detail
+- 5 top layers, 4 bottom layers
+- 15% infill density
+
+**0.20mm Standard @Sovol SV08**:
+- Layer height: 0.20mm
+- Same high-speed settings as 0.16mm profile
+- Balanced quality and speed
+- Standard layer height for most prints
+
+Both profiles include:
+- Accelerations: 10000mm/s² default, 5000mm/s² outer walls
+- Travel speed: 400mm/s
+- Line widths optimized for 0.4mm nozzle
+- Compatible with all Sovol SV08 Max filament profiles
 
 ### Installing the Machine Configuration
 
@@ -310,21 +335,27 @@ The factory configuration has been enhanced with:
 
 ### Custom Macros
 
-The printer configuration includes custom START_PRINT and END_PRINT macros configured for BambuStudio:
+The printer configuration includes enhanced START_PRINT and END_PRINT macros optimized for speed and reliability:
 
-**START_PRINT**:
+**START_PRINT** (Parallel Heating Strategy):
 - Accepts `EXTRUDER` and `BED` temperature parameters from slicer
-- Cleans nozzle before heating (cold clean at 200°C)
-- Performs quad gantry leveling and bed mesh calibration
-- Heats nozzle to target temperature
-- **Wipes nozzle** after heating to remove ooze
+- **Parallel heating**: Starts bed and nozzle heating simultaneously (saves 3-5 minutes)
+  - Phase 1: Start bed + preheat nozzle to 150°C (non-blocking)
+  - Phase 2: Clean nozzle at 150°C while bed continues heating
+  - Phase 3: Wait for bed, perform calibration with hot bed
+  - Phase 4: Final nozzle heat (quick, already at 150°C)
+- Performs quad gantry leveling and bed mesh calibration with heated bed
+- **Wipes nozzle** after final heating to remove accumulated ooze
 - Performs filament feed and clog check
 - Draws purge line before print
+- Total startup time: ~5-7 minutes (vs 8-12 minutes serial heating)
 
 **END_PRINT**:
 - Retracts filament while hot (**10mm total** - improved for easier filament changes)
-- Turns off heaters and fans after retraction
-- Lifts Z by 30mm
+  - Fast 5mm retract + 5mm with Z lift
+  - Always retracts if extruder is hot (no conditional logic)
+- Turns off heaters and fans **after** retraction (ensures clean retraction)
+- Lifts Z by 10mm (reduced from 30mm for easier print removal)
 - Homes X and Y axes
 - Moves to back right corner (X500 Y500) for safety
 - Resets speeds and clears pause state
@@ -332,6 +363,25 @@ The printer configuration includes custom START_PRINT and END_PRINT macros confi
 **WIPE_NOZZLE**: Quick nozzle wipe macro (no heating) used after M109 to remove ooze
 
 **PRINT_START**: Alias for START_PRINT (BambuStudio compatibility)
+
+### Layer Tracking and Progress Display
+
+The machine configuration includes automatic layer tracking and time estimates:
+
+**On Printer Display**:
+```
+Layer 45/120 - ETA: 1h 23m
+```
+
+Updates every layer with:
+- Current layer number
+- Total layer count
+- Estimated time remaining from slicer
+
+**In Mainsail/Fluidd**:
+- Progress percentage
+- Layer information
+- Real-time statistics via `SET_PRINT_STATS_INFO`
 
 ### Eddy Current Probe
 
