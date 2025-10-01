@@ -283,29 +283,30 @@ See `factory_sv08_backup/README.md` for full documentation and restoration instr
 
 ### Demon Klipper Essentials
 
-**Installation Script**: `install_demon_essentials.sh`
+**Status**: ⚠️ **Not Recommended** - Reverted to factory configuration
 
-This repository includes an automated installer for [Demon Klipper Essentials Unified](https://github.com/3DPrintDemon/Demon_Klipper_Essentials_Unified), a comprehensive macro system that enhances Klipper functionality with:
+**Installation Script**: `install_demon_essentials.sh` (available but not recommended)
 
-- Advanced print start/end macros with heat soak management
-- Adaptive bed meshing and pressure advance
-- KAMP_LiTE integration for smart parking and adaptive purge
-- Bed fan monitoring and chamber heater control
-- Z-offset calibration helpers
+This repository includes an automated installer for [Demon Klipper Essentials Unified](https://github.com/3DPrintDemon/Demon_Klipper_Essentials_Unified). However, **installation is not recommended** due to compatibility issues with the SV08 Max's factory buffer stepper system.
 
-**Usage:**
-```bash
-./install_demon_essentials.sh
-```
+**Issues Encountered:**
+- CAN bus errors from buffer_mcu controller
+- Version mismatch errors with PLR (Power Loss Recovery) system
+- Filament sensor and bed fan integration conflicts
+- Multiple print failures despite configuration attempts
 
-The installer will:
-1. Create backup of current configuration
-2. Install Demon Essentials and prerequisites
-3. Configure required Klipper sections
-4. Add Demon includes to printer.cfg (before SAVE_CONFIG)
-5. Restart Klipper and run diagnostics
+**Recommendation**: Use the factory configuration with enhanced START_PRINT/END_PRINT macros (see Custom Macros section above). The factory macros provide reliable operation with the SV08 Max hardware.
 
-**Important**: The installer correctly places Demon includes BEFORE Klipper's SAVE_CONFIG section to preserve autosaved calibration values.
+**For Advanced Users**: If you wish to attempt Demon Essentials installation:
+1. Create a full backup first
+2. Be prepared to revert to factory configuration
+3. Research SV08 Max-specific buffer stepper integration
+4. Expect significant debugging and configuration work
+
+The factory configuration has been enhanced with:
+- Temperature-aware filament retraction (10mm)
+- Nozzle wipe after heating to prevent oozing
+- Proper integration with BambuStudio slicer
 
 ### Custom Macros
 
@@ -313,16 +314,22 @@ The printer configuration includes custom START_PRINT and END_PRINT macros confi
 
 **START_PRINT**:
 - Accepts `EXTRUDER` and `BED` temperature parameters from slicer
-- Heats bed and nozzle to target temperatures
-- Performs G28 homing and bed mesh calibration
-- Cleans nozzle and draws purge line
+- Cleans nozzle before heating (cold clean at 200°C)
+- Performs quad gantry leveling and bed mesh calibration
+- Heats nozzle to target temperature
+- **Wipes nozzle** after heating to remove ooze
+- Performs filament feed and clog check
+- Draws purge line before print
 
 **END_PRINT**:
-- Retracts filament while hot (4mm total)
-- Turns off heaters and fans
+- Retracts filament while hot (**10mm total** - improved for easier filament changes)
+- Turns off heaters and fans after retraction
 - Lifts Z by 30mm
 - Homes X and Y axes
 - Moves to back right corner (X500 Y500) for safety
+- Resets speeds and clears pause state
+
+**WIPE_NOZZLE**: Quick nozzle wipe macro (no heating) used after M109 to remove ooze
 
 **PRINT_START**: Alias for START_PRINT (BambuStudio compatibility)
 

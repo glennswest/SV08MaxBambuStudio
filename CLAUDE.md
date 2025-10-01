@@ -338,6 +338,9 @@ Critical fields for compatibility:
 7. **Eddy Probe Miscalibration**: Fixed with complete recalibration at 70°C bed temp
 8. **Demon Install Config Error**: Resolved by inserting includes before SAVE_CONFIG marker
 9. **END_PRINT Sequence Issues**: Fixed through user corrections (retract before heater off, home XY before Z move)
+10. **Demon Essentials Incompatibility**: Discovered fundamental incompatibility with SV08 buffer stepper system, reverted to enhanced factory configuration
+11. **Insufficient Filament Retraction**: Increased from conditional 4mm to always 10mm for easier filament changes
+12. **Nozzle Ooze During Heatup**: Added WIPE_NOZZLE macro after M109 to prevent first layer contamination
 
 ## Files Modified/Created
 
@@ -357,30 +360,40 @@ Critical fields for compatibility:
 ### Klipper Configuration (sv08.gw.lo)
 ```
 ~/printer_data/config/
-├── Macro.cfg                                   [MODIFIED]
+├── Macro.cfg                                   [MODIFIED - FINAL]
 │   - Added temperature parameters to START_PRINT
 │   - Added PRINT_START alias
-│   - Added purge line after cleaning
-│   - Commented out conflicting macros for Demon Essentials
-├── printer.cfg                                 [MODIFIED]
-│   - Added [force_move] section
-│   - Updated [idle_timeout] for Demon
-│   - Added Demon includes (before SAVE_CONFIG)
-│   - Preserved all SAVE_CONFIG autosaved values
+│   - Added WIPE_NOZZLE macro for post-heating cleaning
+│   - Enhanced END_PRINT with 10mm retraction (was 4mm conditional)
+│   - Integrated WIPE_NOZZLE into START_PRINT sequence
+│   - Commented out conflicting macros for Demon Essentials (REVERTED)
+├── printer.cfg                                 [RESTORED TO FACTORY]
+│   - Demon includes removed
+│   - Factory configuration restored from backup
+│   - All SAVE_CONFIG autosaved values preserved
 ├── timelapse.cfg                               [MODIFIED]
 │   - Enabled timelapse: variable_enable: True
 │   - Enabled parking: variable_park.enable: True
-├── Demon_Klipper_Essentials_Unified/          [CREATED]
-│   └── [13 .cfg files]
-├── Demon_User_Files/                           [CREATED]
-│   └── [3 .cfg files]
-└── KAMP_LiTE/                                  [CREATED]
-    └── [3 .cfg files]
+├── Demon_Klipper_Essentials_Unified/          [REMOVED]
+├── Demon_User_Files/                           [REMOVED]
+└── KAMP_LiTE/                                  [REMOVED]
 ```
 
 ### Local Repository
 ```
 /Volumes/minihome/gwest/projects/BambuSV08Max/
+├── Sovol sv08 max 0.4 nozzle.json              [MODIFIED]
+│   - Updated machine_start_gcode to use START_PRINT
+│   - Updated machine_end_gcode to use END_PRINT
+│   - Removed DEMON_START/DEMON_END references
+├── README.md                                   [MODIFIED]
+│   - Updated macro documentation
+│   - Added Demon Essentials warning
+│   - Documented enhanced factory macros
+├── CLAUDE.md                                   [MODIFIED]
+│   - Added Phase 10 (Demon Essentials attempt)
+│   - Added Phase 11 (Enhanced Factory Macros)
+│   - Updated verification checklists
 ├── factory_sv08_backup/                        [CREATED]
 │   ├── README.md
 │   ├── config/ (19 files)
@@ -397,6 +410,10 @@ Critical fields for compatibility:
 3. **Flatten inheritance completely**: Don't assume any default values
 4. **Test incrementally**: Small changes help isolate problems
 5. **Document iterations**: Complex projects need clear failure documentation
+6. **Hardware compatibility matters**: Third-party macro systems may not be compatible with proprietary hardware (buffer steppers, CAN bus controllers)
+7. **Factory configs have value**: Sometimes enhancing factory macros is better than replacing them entirely
+8. **Always create backups**: Critical before major configuration changes - saved hours when reverting Demon Essentials
+9. **Simpler is often better**: Enhanced factory macros with 10mm retraction and wipe work better than complex macro systems
 
 ## Script/Automation Used
 
@@ -464,11 +481,124 @@ EOF
 - [x] Eddy probe calibrated (0.0014mm accuracy)
 - [x] Bed mesh successful (60x60 grid)
 - [x] Factory backup created with documentation
-- [x] Demon Essentials installed without errors
+- [x] Demon Essentials attempted but reverted (incompatible with buffer stepper)
+- [x] Factory configuration restored and operational
 - [x] Klipper state: ready
 - [x] All autosaved values preserved
-- [x] START_PRINT and END_PRINT macros functional
+- [x] START_PRINT enhanced with WIPE_NOZZLE after heating
+- [x] END_PRINT enhanced with 10mm retraction
+- [x] BambuStudio machine config updated to use factory macros
 - [x] Timelapse enabled and configured
+
+### Phase 10: Demon Essentials Installation Attempt (Reverted)
+
+**Request**: Install Demon_Klipper_Essentials_Unified for advanced macro features
+
+**Initial Success**: Installation completed successfully
+- All Demon configuration files installed
+- Prerequisites (KAMP_LiTE) installed
+- Klipper state: ready
+- 14 Demon/KAMP objects loaded
+
+**Problem**: Multiple print failures with version mismatch errors
+```
+Error: _DEMON_VERSION_MISMATCH:gcode - This error is caused by a Demon_version mismatch
+```
+
+**Debugging Attempts** (all failed):
+1. Disabled PLR (Power Loss Recovery): `variable_sovol_plr: False`
+2. Created version macros in buffer_stepper.cfg and plr.cfg
+3. Fixed variable naming: `demon_buf_stp_ver` vs `demon_buf_stp_version`
+4. Disabled bed fans due to missing thermal sensors
+5. Attempted to disable filament sensor checks
+6. Added DMGCC version parameter to machine start gcode
+
+**Root Cause**: Fundamental incompatibility between Demon Essentials and SV08 Max buffer stepper system
+- Buffer MCU (CAN bus device) kept disconnecting
+- Factory buffer_stepper.cfg uses hardware not supported by Demon Essentials
+- Filament sensor integrated with buffer system
+- Multiple cascading errors despite configuration changes
+
+**Resolution**: Complete factory restoration
+```bash
+rm -rf /home/sovol/printer_data/config
+cp -r /home/sovol/printer_data/config_backup_before_demon_* /home/sovol/printer_data/config
+rm -f /home/sovol/demon_vars.cfg
+rm -rf /home/sovol/printer_data/config/Demon_*
+```
+
+**Result**: ✅ Factory configuration restored, Klipper ready
+
+**Key Learning**: The SV08 Max's factory buffer stepper system with CAN bus integration is not compatible with Demon Essentials without significant custom integration work.
+
+### Phase 11: Enhanced Factory Macros
+
+**Request**: Update BambuStudio configuration and enhance factory macros
+
+**Actions**:
+
+1. **BambuStudio Machine Configuration Update**:
+   - Changed `machine_start_gcode` from `DEMON_START` to `START_PRINT EXTRUDER=[nozzle_temperature_initial_layer] BED=[bed_temperature_initial_layer_single]`
+   - Changed `machine_end_gcode` from `DEMON_END` to `END_PRINT`
+   - File: `Sovol sv08 max 0.4 nozzle.json`
+
+2. **END_PRINT Retraction Enhancement**:
+   - **Before**: Conditionally retracted 4mm only if filament sensor detected filament
+   - **After**: Always retracts 10mm if extruder is hot enough
+   - Sequence: 5mm fast retract + 5mm with Z lift
+   - Makes filament changes easier and reduces oozing
+
+3. **WIPE_NOZZLE Macro Creation**:
+   - New macro for quick nozzle wipe without heating
+   - Based on existing CLEAN_NOZZLE pattern but optimized
+   - Uses SAVE_GCODE_STATE/RESTORE_GCODE_STATE
+
+4. **START_PRINT Enhancement**:
+   - Added `WIPE_NOZZLE` call after M109 heating
+   - Removes ooze that accumulates during heat-up
+   - Sequence: CLEAN_NOZZLE (cold) → heat → WIPE_NOZZLE → purge line
+
+**Code Changes**:
+
+**END_PRINT retraction**:
+```python
+# Retract filament BEFORE turning off heaters (while still hot)
+{% if printer.extruder.temperature >= e_mintemp %}
+    G1 E-5 F2700  # Fast retract 5mm
+    G1 E-5 Z0.2 F2400  # Additional 5mm retract with small Z lift (10mm total)
+{% endif %}
+```
+
+**WIPE_NOZZLE macro**:
+```python
+[gcode_macro WIPE_NOZZLE]
+description: Quick nozzle wipe (no heating) for use after M109
+gcode:
+    SAVE_GCODE_STATE NAME=wipe_nozzle_state
+    G90
+    G1 X30 Y195 F9000
+    # ... wipe pattern ...
+    RESTORE_GCODE_STATE NAME=wipe_nozzle_state
+```
+
+**START_PRINT sequence**:
+```python
+M109 S{EXTRUDER}
+WIPE_NOZZLE    ; Quick wipe after heating to remove any ooze
+MANUAL_FEED
+```
+
+**Files Modified**:
+- `/home/sovol/printer_data/config/Macro.cfg` - Enhanced START_PRINT and END_PRINT
+- `/Volumes/minihome/gwest/projects/BambuSV08Max/Sovol sv08 max 0.4 nozzle.json` - Updated slicer config
+
+**Result**: ✅ Factory macros enhanced with improved reliability and usability
+
+**Key Improvements**:
+- Better filament management (10mm retraction)
+- Cleaner first layers (wipe after heating)
+- Simpler configuration (no complex macro system needed)
+- Full compatibility with SV08 Max hardware
 
 ## Future Improvements
 
@@ -480,7 +610,22 @@ EOF
 
 ## Conclusion
 
-Successfully created a complete system preset package for Sovol SV08 Max with all 44 Bambu Lab filament profiles. The key was understanding BambuStudio's vendor architecture and properly flattening the inheritance hierarchy. The result is a professional-grade filament library that integrates seamlessly with BambuStudio's interface.
+Successfully created a complete system preset package for Sovol SV08 Max with all 44 Bambu Lab filament profiles, calibrated the eddy current probe to 0.0014mm accuracy, and enhanced factory macros for optimal reliability.
+
+**Key Achievements:**
+- 44 Bambu Lab filament profiles as system presets in BambuStudio
+- Complete factory configuration backup with probe calibration
+- Enhanced START_PRINT with post-heating nozzle wipe
+- Improved END_PRINT with 10mm filament retraction
+- BambuStudio machine configuration fully integrated with factory macros
+
+**Key Learnings:**
+- Understanding BambuStudio's vendor architecture and inheritance flattening
+- Eddy current probe calibration requires heated bed (70°C)
+- Factory configurations can be superior to complex third-party macro systems for proprietary hardware
+- Backups are critical for rapid recovery from incompatible configurations
+
+The result is a professional-grade filament library with robust, tested macros that integrate seamlessly with the SV08 Max's hardware capabilities.
 
 ---
 
