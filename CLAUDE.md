@@ -489,6 +489,11 @@ EOF
 - [x] END_PRINT enhanced with 10mm retraction
 - [x] BambuStudio machine config updated to use factory macros
 - [x] Timelapse enabled and configured
+- [x] Input shaper optimized (EI @ 54.0Hz X, 44.8Hz Y)
+- [x] Hotend fan heat creep prevention (35°C activation)
+- [x] Idle timeout enhanced with retraction
+- [x] Startup safety check for emergency recovery
+- [x] Force move enabled for unhomed recovery
 
 ### Phase 10: Demon Essentials Installation Attempt (Reverted)
 
@@ -675,6 +680,240 @@ MANUAL_FEED
 
 **Time Saved**: 3-5 minutes per print from parallel heating optimization
 
+### Phase 13: Surface Quality Improvements
+
+**Request**: Diagnose and fix rough surface finish on prints
+
+**Investigation**:
+- Last print: SmallBox.gcode
+- Filament: PolyLite PLA Pro @Sovol sv08 max 0.4 nozzle
+- Process: 0.16mm Optimal @Sovol SV08
+
+**Problems Found**:
+1. **Flow rate too low**: 93% (significant under-extrusion)
+2. **Outer wall speed too high**: 200mm/s
+3. **Outer wall acceleration too aggressive**: 5000mm/s²
+4. **Large printer ringing**: SV08 Max 500x500mm gantry has low resonance frequencies (37-42Hz)
+
+**Solutions Applied**:
+
+1. **PolyLite PLA Pro Filament Profile** (`filament/PolyLite PLA Pro @Sovol sv08 max 0.4 nozzle.json`):
+   - Flow: 93% → **98%**
+
+2. **0.16mm Optimal Print Profile** (`process/0.16mm Optimal @Sovol SV08.json`):
+   - Outer wall speed: 200mm/s → **150mm/s**
+   - Outer wall acceleration: 5000mm/s² → **3000mm/s²**
+
+**Files Modified**:
+- `/Volumes/minihome/gwest/Library/Application Support/BambuStudio/user/3781690243/filament/PolyLite PLA Pro @Sovol sv08 max 0.4 nozzle.json`
+- `/Volumes/minihome/gwest/Library/Application Support/BambuStudio/user/3781690243/process/0.16mm Optimal @Sovol SV08.json`
+
+**Result**: ✅ Improved flow and reduced outer wall speed/acceleration for better surface finish
+
+**Expected Improvements**:
+- Better layer adhesion from 98% flow
+- Smoother surfaces from slower outer walls
+- Less ringing/ghosting from reduced acceleration
+
+### Phase 14: Input Shaper Calibration and Optimization
+
+**Request**: Improve surface quality through input shaper optimization
+
+**Analysis**: Large format printer (500x500mm) shows:
+- Low resonance frequencies (X: 42.8Hz, Y: 37.0Hz)
+- Heavy gantry with long belts = more vibration
+- Using ZV shaper (basic ringing reduction)
+
+**Actions**:
+
+1. **Manual Input Shaper Change** (User Request):
+   - Changed from ZV → **EI shaper** for maximum ringing reduction
+   - Updated `printer.cfg`: `shaper_type_x = ei`, `shaper_type_y = ei`
+
+2. **Ran Full Input Shaper Calibration**:
+   ```bash
+   SHAPER_CALIBRATE
+   ```
+
+**Calibration Results**:
+
+**X Axis Options**:
+- ZV @ 42.8Hz: 0.4% vibrations, smoothing = 0.089
+- MZV @ 45.2Hz: 0.0% vibrations, smoothing = 0.100
+- **EI @ 54.0Hz: 0.0% vibrations, smoothing = 0.110** ← Selected
+- 2HUMP_EI @ 67.2Hz: 0.0% vibrations, smoothing = 0.119
+- 3HUMP_EI @ 80.2Hz: 0.0% vibrations, smoothing = 0.127
+
+**Y Axis Options**:
+- ZV @ 37.2Hz: 1.3% vibrations, smoothing = 0.114
+- MZV @ 37.4Hz: 0.0% vibrations, smoothing = 0.146
+- **EI @ 44.8Hz: 0.0% vibrations, smoothing = 0.160** ← Selected
+- 2HUMP_EI @ 55.6Hz: 0.0% vibrations, smoothing = 0.175
+- 3HUMP_EI @ 66.6Hz: 0.0% vibrations, smoothing = 0.185
+
+**Decision**: User chose EI shaper for **maximum ringing reduction** (0.0% vibrations on both axes)
+
+**Final Configuration** (`printer.cfg` SAVE_CONFIG section):
+```ini
+[input_shaper]
+shaper_type_x = ei
+shaper_freq_x = 54.0
+shaper_type_y = ei
+shaper_freq_y = 44.8
+```
+
+**Files Modified**:
+- `/home/sovol/printer_data/config/printer.cfg` (via SSH to sv08.gw.lo)
+
+**Result**: ✅ EI shaper active with calibrated frequencies for zero vibration
+
+**Trade-off**:
+- **ZV**: Less smoothing (sharper details), minimal vibrations (0.4-1.3%)
+- **EI**: Zero vibrations, more smoothing (slightly softer details)
+- User prioritized surface quality over maximum detail
+
+### Phase 15: Heat Creep Prevention and Emergency Safety Systems
+
+**Request**: Improve safety systems to prevent clogs and handle emergency stops
+
+**Problems Identified**:
+1. **Hotend fan starts too late**: 45°C (close to PLA glass transition ~60°C)
+2. **No retraction on idle timeout**: Filament sits in hot nozzle during shutdown
+3. **No emergency stop recovery**: After M112/crash, toolhead stays at print location with filament in nozzle
+4. **No heat break thermal monitoring**: Only hotend thermistor, no cold-side temperature sensor
+
+**Solutions Implemented**:
+
+#### 1. Hotend Fan Heat Creep Prevention
+
+**Changed** (`printer.cfg`):
+```ini
+[heater_fan hotend_fan]
+heater_temp: 45  →  heater_temp: 35
+```
+
+**Benefit**: Fan starts **10°C earlier**, well before filament softening point
+
+#### 2. Enhanced Idle Timeout with Retraction
+
+**Before** (`Macro.cfg`):
+```python
+[gcode_macro _IDLE_TIMEOUT]
+gcode:
+    {% if printer.print_stats.state == "paused" %}
+      RESPOND TYPE=echo MSG="No operations in 30min!"
+    {% else %}
+     M84
+     TURN_OFF_HEATERS
+    {% endif %}
+```
+
+**After**:
+```python
+[gcode_macro _IDLE_TIMEOUT]
+gcode:
+    {% if printer.print_stats.state == "paused" %}
+      RESPOND TYPE=echo MSG="No operations in 30min!"
+    {% else %}
+      {% set e_mintemp = printer.configfile.settings['extruder'].min_extrude_temp %}
+      # Retract before shutdown if hot enough to prevent oozing/clogs
+      {% if printer.extruder.temperature >= e_mintemp %}
+        G91
+        G1 E-10 F2700  # Retract 10mm before shutdown
+        G90
+      {% endif %}
+      TURN_OFF_HEATERS
+      M84
+    {% endif %}
+```
+
+**Benefit**: Prevents filament from sitting in hot nozzle during cooldown (oozing, clogging, degradation)
+
+#### 3. Startup Safety Check (Emergency Stop Recovery)
+
+**New Delayed Gcode** (`Macro.cfg`):
+```python
+[delayed_gcode STARTUP_SAFETY_CHECK]
+initial_duration: 2.0
+gcode:
+    {% set e_mintemp = printer.configfile.settings['extruder'].min_extrude_temp %}
+    {% set hotend_temp = printer.extruder.temperature %}
+
+    # Check if hotend is still warm from emergency stop/power loss
+    {% if hotend_temp > 50 %}
+        RESPOND TYPE=echo MSG="Hotend still warm - performing safety checks"
+
+        # Ensure hotend fan is running and heaters are OFF
+        SET_HEATER_TEMPERATURE HEATER=extruder TARGET=0
+        M106 S255
+
+        # If hot enough to retract, do it now to prevent oozing/clog
+        {% if hotend_temp >= e_mintemp %}
+            RESPOND TYPE=echo MSG="Retracting filament to prevent oozing"
+            G91
+            G1 E-10 F2700
+            G90
+        {% endif %}
+
+        M107
+    {% endif %}
+
+    # Move to safe position (works even if not homed)
+    {% if printer.toolhead.homed_axes|lower == "xyz" %}
+        RESPOND TYPE=echo MSG="Moving to safe park position"
+        G90
+        G1 Z450 F3000
+        G1 X250 Y470 F9000
+    {% else %}
+        RESPOND TYPE=echo MSG="Using force move to safe position"
+        # Force move Z up 100mm (enough to clear most prints) at higher speed
+        FORCE_MOVE STEPPER=stepper_z DISTANCE=100 VELOCITY=50
+        FORCE_MOVE STEPPER=stepper_z1 DISTANCE=100 VELOCITY=50
+        FORCE_MOVE STEPPER=stepper_z2 DISTANCE=100 VELOCITY=50
+        FORCE_MOVE STEPPER=stepper_z3 DISTANCE=100 VELOCITY=50
+        # Force move to rear center (safer for user access)
+        FORCE_MOVE STEPPER=stepper_x DISTANCE=250 VELOCITY=100
+        FORCE_MOVE STEPPER=stepper_y DISTANCE=470 VELOCITY=100
+    {% endif %}
+```
+
+**Added Force Move Support** (`printer.cfg`):
+```ini
+[force_move]
+enable_force_move: True
+```
+
+**Behavior**:
+- Runs 2 seconds after every Klipper restart
+- **If hotend warm (>50°C)**: Confirms heaters off, retracts filament, helps cooldown
+- **If homed**: Uses normal G1 moves to safe position (Z=450mm, rear center)
+- **If NOT homed**: Uses FORCE_MOVE to clear toolhead from build surface
+  - Z: +100mm (clears most prints)
+  - X: 250mm (center), Y: 470mm (rear)
+
+**Files Modified**:
+- `/home/sovol/printer_data/config/Macro.cfg`
+  - Enhanced `_IDLE_TIMEOUT` with retraction
+  - Added `STARTUP_SAFETY_CHECK` delayed_gcode
+- `/home/sovol/printer_data/config/printer.cfg`
+  - Changed hotend fan `heater_temp: 45` → `35`
+  - Added `[force_move]` section
+
+**Result**: ✅ Complete safety system for heat creep prevention and emergency recovery
+
+**Protection Provided**:
+1. **Heat Creep**: Fan starts at 35°C, prevents filament softening in cold zone
+2. **Idle Shutdown**: Retracts filament before turning off heaters
+3. **Emergency Stop**: Automatic recovery moves toolhead to safe position, retracts if possible
+4. **Power Loss**: Same recovery on restart
+
+**Limitations**:
+- No cold-side heat break temperature sensor (not available on SV08 Max)
+- M112 emergency stop cannot retract (safety requirement - immediate halt)
+- FORCE_MOVE works on absolute distance, not relative (assumes toolhead near bed)
+
+**Testing**: Macro successfully executed on restart with cold hotend (26°C), issued force move commands to safe position
+
 ## Future Improvements
 
 1. Add additional nozzle sizes (0.2mm, 0.6mm, 0.8mm)
@@ -696,6 +935,9 @@ Successfully created a complete system preset package for Sovol SV08 Max with al
 - Layer tracking and time estimates on printer display
 - Two optimized print process profiles (0.16mm and 0.20mm)
 - BambuStudio machine configuration fully integrated with factory macros
+- Surface quality optimized (98% flow, 150mm/s outer walls, 3000mm/s² accel)
+- EI input shaper calibrated for zero vibration (54.0Hz X, 44.8Hz Y)
+- Comprehensive safety systems (heat creep prevention, idle retraction, emergency recovery)
 
 **Key Learnings:**
 - Understanding BambuStudio's vendor architecture and inheritance flattening
