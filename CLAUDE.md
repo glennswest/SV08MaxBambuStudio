@@ -492,7 +492,7 @@ EOF
 - [x] Input shaper optimized (EI @ 54.0Hz X, 44.8Hz Y)
 - [x] Hotend fan heat creep prevention (35°C activation)
 - [x] Idle timeout enhanced with retraction
-- [x] Startup safety check for emergency recovery
+- [x] Startup safety check for emergency recovery (removed - caused grinding)
 - [x] Force move enabled for unhomed recovery
 
 ### Phase 10: Demon Essentials Installation Attempt (Reverted)
@@ -913,6 +913,37 @@ enable_force_move: True
 - FORCE_MOVE works on absolute distance, not relative (assumes toolhead near bed)
 
 **Testing**: Macro successfully executed on restart with cold hotend (26°C), issued force move commands to safe position
+
+### Phase 16: Remove Startup Safety Check
+
+**Problem**: `STARTUP_SAFETY_CHECK` delayed gcode causing printer grinding on startup
+- Force moves executing on unhomed axes
+- Steppers grinding against physical limits
+- Unsafe behavior with cold printer
+
+**Root Cause**: FORCE_MOVE commands use absolute positioning, not relative
+- Commands assumed toolhead near bed (Z=0-100mm range)
+- If toolhead at high Z position, force moves were invalid
+- Steppers attempted impossible moves, causing grinding
+
+**Solution**: Removed entire `STARTUP_SAFETY_CHECK` delayed gcode section
+- Lines 594-635 deleted from Macro.cfg
+- Kept other safety features:
+  - Hotend fan at 35°C (heat creep prevention)
+  - Idle timeout with 10mm retraction
+  - `[force_move]` section remains (for manual recovery if needed)
+
+**Files Modified**:
+- `/home/sovol/printer_data/config/Macro.cfg` - Removed STARTUP_SAFETY_CHECK
+
+**Result**: ✅ Printer starts normally without grinding
+
+**Safety Features Retained**:
+- Heat creep prevention (hotend fan @ 35°C)
+- Idle timeout with filament retraction
+- Manual force move capability (user-invoked only)
+
+**Key Learning**: Automatic force moves on startup are unsafe - printer state unknown, physical position cannot be assumed
 
 ## Future Improvements
 
