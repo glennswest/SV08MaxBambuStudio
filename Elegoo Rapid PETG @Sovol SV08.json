@@ -1,7 +1,7 @@
 {
     "type": "filament",
     "name": "Elegoo Rapid PETG @Sovol SV08",
-    "from": "SV08 Custom",
+    "from": "User",
     "filament_id": "GFG99",
     "cool_plate_temp": [
         "0"

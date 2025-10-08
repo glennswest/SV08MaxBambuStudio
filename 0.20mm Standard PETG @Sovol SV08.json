@@ -49,7 +49,7 @@
     "flush_into_infill": "0",
     "flush_into_objects": "0",
     "flush_into_support": "1",
-    "from": "SV08 Custom",
+    "from": "User",
     "fuzzy_skin": "none",
     "fuzzy_skin_point_distance": "0.8",
     "fuzzy_skin_thickness": "0.3",
