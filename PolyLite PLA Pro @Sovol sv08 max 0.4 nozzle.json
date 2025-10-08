@@ -40,7 +40,7 @@
     "filament_vendor": [
         "Polymaker"
     ],
-    "from": "User",
+    "from": "Polymaker",
     "hot_plate_temp": [
         "60"
     ],

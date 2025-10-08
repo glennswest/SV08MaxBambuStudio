@@ -1,0 +1,26 @@
+{
+    "type": "filament",
+    "filament_id": "GFG98",
+    "filament_extruder_variant": [
+        "Direct Drive Standard"
+    ],
+    "filament_max_volumetric_speed": [
+        "30"
+    ],
+    "filament_settings_id": [
+        "Elegoo HF Petg"
+    ],
+    "from": "Elegoo",
+    "compatible_printers": [
+        "Sovol sv08 max 0.4 nozzle"
+    ],
+    "hot_plate_temp": [
+        "75"
+    ],
+    "hot_plate_temp_initial_layer": [
+        "75"
+    ],
+    "inherits": "Bambu PETG HF @BBL X1C",
+    "name": "Elegoo HF Petg",
+    "version": "2.0.0.77"
+}

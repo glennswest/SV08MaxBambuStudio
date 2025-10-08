@@ -2,7 +2,7 @@
     "type": "process",
     "setting_id": "GP_VORON_005",
     "name": "0.16mm Optimal PETG @Sovol SV08",
-    "from": "User",
+    "from": "Sovol SV08",
     "inherits": "",
     "instantiation": "true",
     "layer_height": "0.16",
