@@ -1,5 +1,6 @@
 {
     "type": "filament",
+    "filament_id": "GFL01",
     "cool_plate_temp": [
         "55"
     ],
