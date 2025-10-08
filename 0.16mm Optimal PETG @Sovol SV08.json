@@ -2,7 +2,7 @@
     "type": "process",
     "setting_id": "GP_VORON_005",
     "name": "0.16mm Optimal PETG @Sovol SV08",
-    "from": "User",
+    "from": "SV08 Custom",
     "inherits": "",
     "instantiation": "true",
     "layer_height": "0.16",
@@ -34,5 +34,5 @@
     "compatible_printers": [
         "Sovol sv08 max 0.4 nozzle"
     ],
-    "process_notes": "PETG-optimized profile with reduced speeds for better surface quality and reduced stringing. 0.16mm layers for high detail. Use with PETG filament profiles (230-250°C, 70-85°C bed)."
+    "process_notes": "PETG-optimized profile with reduced speeds for better surface quality and reduced stringing. 0.16mm layers for high detail. Use with PETG filament profiles (230-250\u00b0C, 70-85\u00b0C bed)."
 }

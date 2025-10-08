@@ -1,0 +1,113 @@
+{
+    "type": "filament",
+    "name": "Elegoo Rapid PETG @Sovol SV08",
+    "from": "SV08 Custom",
+    "filament_id": "GFG99",
+    "cool_plate_temp": [
+        "0"
+    ],
+    "cool_plate_temp_initial_layer": [
+        "0"
+    ],
+    "eng_plate_temp": [
+        "80"
+    ],
+    "eng_plate_temp_initial_layer": [
+        "80"
+    ],
+    "fan_cooling_layer_time": [
+        "30"
+    ],
+    "fan_max_speed": [
+        "90"
+    ],
+    "fan_min_speed": [
+        "40"
+    ],
+    "filament_flow_ratio": [
+        "0.92"
+    ],
+    "filament_max_volumetric_speed": [
+        "12"
+    ],
+    "hot_plate_temp": [
+        "80"
+    ],
+    "hot_plate_temp_initial_layer": [
+        "80"
+    ],
+    "nozzle_temperature_range_high": [
+        "270"
+    ],
+    "overhang_fan_speed": [
+        "90"
+    ],
+    "overhang_fan_threshold": [
+        "10%"
+    ],
+    "slow_down_layer_time": [
+        "10"
+    ],
+    "textured_plate_temp": [
+        "70"
+    ],
+    "textured_plate_temp_initial_layer": [
+        "70"
+    ],
+    "nozzle_temperature": [
+        "255"
+    ],
+    "nozzle_temperature_initial_layer": [
+        "255"
+    ],
+    "nozzle_temperature_range_low": [
+        "230"
+    ],
+    "retract_before_wipe": [
+        "70%"
+    ],
+    "retract_length_toolchange": [
+        "2"
+    ],
+    "retraction_length": [
+        "1"
+    ],
+    "retraction_minimum_travel": [
+        "2"
+    ],
+    "retraction_speed": [
+        "30"
+    ],
+    "z_hop": [
+        "0.4"
+    ],
+    "z_hop_types": [
+        "Normal Lift"
+    ],
+    "filament_diameter": [
+        "1.75"
+    ],
+    "filament_density": [
+        "1.27"
+    ],
+    "filament_cost": [
+        "20"
+    ],
+    "filament_type": [
+        "PETG"
+    ],
+    "filament_is_support": [
+        "0"
+    ],
+    "filament_soluble": [
+        "0"
+    ],
+    "compatible_printers": [
+        "Sovol sv08 max 0.4 nozzle"
+    ],
+    "compatible_printers_condition": "",
+    "filament_extruder_variant": [
+        "Direct Drive Standard"
+    ],
+    "filament_notes": "Elegoo Rapid PETG with 92% flow for accurate wall thickness. Temperature: 250-260\u00b0C, Bed: 75-85\u00b0C"
+}
