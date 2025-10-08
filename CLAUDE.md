@@ -945,6 +945,160 @@ enable_force_move: True
 
 **Key Learning**: Automatic force moves on startup are unsafe - printer state unknown, physical position cannot be assumed
 
+### Phase 17: Purge Bucket Implementation
+
+**Request**: Add purge bucket support for cleaner filament management
+
+**Problems Identified**:
+1. **Bed purge line**: START_PRINT drew two purge lines on the bed (X=10-12, Y=10-200)
+2. **LOAD_FILAMENT**: Extruded 75mm wherever toolhead was positioned (messy on bed)
+3. **Nozzle contamination**: Strings and ooze left on nozzle after purging
+
+**Solutions Implemented**:
+
+#### 1. PURGE_BUCKET Macro
+
+**Created new macro** (`Macro.cfg`):
+```python
+[gcode_macro PURGE_BUCKET]
+description: Purge filament into bucket before wiping nozzle
+variable_purge_amount: 15.0        # Amount to purge in mm
+variable_purge_speed: 150          # Purge speed in mm/s
+variable_bucket_x: -7              # Bucket X position (same as wiper)
+variable_bucket_y: 170             # Bucket Y position (in front of wiper)
+variable_bucket_z: 10              # Z height above bucket (safe clearance)
+gcode:
+    # Only purge if hotend is hot enough
+    # Move to bucket position
+    # Purge filament
+    # Small retract to prevent stringing
+```
+
+**Features**:
+- Position: X=-7, Y=170 (front of nozzle wiper)
+- Configurable purge amount and speed
+- Safety checks for minimum temperature
+- Automatic retract after purge
+
+#### 2. LOAD_FILAMENT Update
+
+**Before**: Extruded 75mm wherever toolhead was positioned
+
+**After**:
+```python
+# Move to purge bucket before extruding
+{% if printer.toolhead.homed_axes|lower == "xyz" %}
+    SAVE_GCODE_STATE NAME=load_filament_state
+    G90
+    G1 X-7 Y170 Z10 F9000  # Move to purge bucket
+{% endif %}
+
+# Extrude filament into bucket
+G91
+G1 E45 F300
+G1 E30 F150
+G90
+M400
+
+{% if printer.toolhead.homed_axes|lower == "xyz" %}
+    RESTORE_GCODE_STATE NAME=load_filament_state
+{% endif %}
+```
+
+**Behavior**: Saves position, moves to bucket, extrudes, returns to original position
+
+#### 3. START_PRINT Purge Line Replacement
+
+**Problem Discovered**: Initial implementation left "ball of snot" on nozzle
+- Sequence was: Purge → Wipe → Purge again (no final wipe!)
+- WIPE_NOZZLE used SAVE_GCODE_STATE/RESTORE_GCODE_STATE, moving back through bucket area
+
+**Solution**: Complete sequence redesign
+
+**Final working sequence**:
+```gcode
+# Big purge into bucket for well-formed poop (replaces bed purge line)
+G90
+G1 X-7 Y170 Z5 F9000           # Move to purge bucket at 5mm height
+M83                             # Relative extrusion
+G1 E45 F150                     # Slow 45mm purge for thick, well-formed poop
+G4 P1000                        # Dwell 1 second to let filament drop
+G1 E-2.5 F2700                  # Retract more to break string cleanly
+M82                             # Absolute extrusion
+G92 E0                          # Reset extruder
+
+# Move directly to wiper and clean nozzle (no state save/restore to avoid new strings)
+G90
+G1 Z10 F3000                    # Lift first
+G1 X30 Y195 F9000               # Move to wiper entry position
+# ... wipe pattern ...
+G91
+G1 Z5                           # Lift off wiper
+G90
+
+# Move to print start position
+G1 Z2.0 F3000
+```
+
+**Key improvements**:
+- **Z=5mm purge height**: Perfect for forming thick strands that drop cleanly
+- **45mm @ 150mm/s**: Slow extrusion creates thick poop (not thin strings)
+- **1 second dwell**: Gravity drops the filament
+- **Direct wipe (no position restore)**: Prevents nozzle from dragging back through bucket
+- **No more bed purge lines**: All waste goes in bucket
+
+**Files Modified**:
+- `/home/sovol/printer_data/config/Macro.cfg`:
+  - Added `PURGE_BUCKET` macro
+  - Updated `LOAD_FILAMENT` to use purge bucket
+  - Replaced bed purge line in `START_PRINT` with bucket purge + direct wipe
+
+**Result**: ✅ Clean nozzle before every print, no filament waste on bed
+
+**Debugging Iterations**:
+1. Initial: Purge → Wipe → Purge (left snot ball)
+2. Second: Purge → Wipe with RESTORE (dragged nozzle back through bucket)
+3. Final: Purge → Direct wipe without restore (clean!)
+
+**Key Learning**: State save/restore in macros can cause unintended nozzle paths - use direct positioning for critical sequences
+
+### Phase 18: PETG Print Profiles
+
+**Request**: Create PETG printing profiles from existing PLA profiles
+
+**Profiles Created**:
+1. **0.16mm Optimal PETG @Sovol SV08** (based on 0.16mm Optimal PLA)
+2. **0.20mm Standard PETG @Sovol SV08** (based on 0.20mm Standard PLA)
+
+**Key Changes from PLA Profiles**:
+
+| Setting | PLA (0.20mm) | PETG (0.20mm) | Reason |
+|---------|--------------|---------------|---------|
+| Outer wall speed | 200mm/s | 130mm/s | PETG needs slower for better adhesion |
+| Inner wall speed | 300mm/s | 220mm/s | Reduce stringing |
+| Sparse infill speed | 270mm/s | 220mm/s | Better layer bonding |
+| Internal solid infill | 250mm/s | 200mm/s | Smoother top surfaces |
+| Top surface speed | 200mm/s | 150mm/s | Better finish |
+| Initial layer speed | 50mm/s | 40mm/s | Better first layer adhesion |
+| Bridge speed | 50mm/s | 40mm/s | PETG strings more |
+| Default acceleration | 10000mm/s² | 8000mm/s² | Gentler on PETG |
+| Outer wall accel | 5000mm/s² | 3000mm/s² | Smoother surface finish |
+| Inner wall accel | 10000mm/s² | 8000mm/s² | Better layer adhesion |
+
+**Compatible Filament Profiles** (already in system):
+- Bambu PETG Basic @Sovol sv08 max (240°C, 75°C bed)
+- Bambu PETG HF @Sovol sv08 max (240°C, 75°C bed)
+- Bambu PETG Translucent @Sovol sv08 max (240°C, 75°C bed)
+- Bambu PETG-CF @Sovol sv08 max (270°C, 80°C bed)
+
+**Files Created**:
+- `/Library/Application Support/BambuStudio/user/.../process/0.16mm Optimal PETG @Sovol SV08.json`
+- `/Library/Application Support/BambuStudio/user/.../process/0.20mm Standard PETG @Sovol SV08.json`
+
+**Result**: ✅ PETG profiles with optimized speeds for better surface quality and reduced stringing
+
+**Note**: BambuStudio caches profiles per-project - completely quit and restart or create new project to see new profiles
+
 ## Future Improvements
 
 1. Add additional nozzle sizes (0.2mm, 0.6mm, 0.8mm)
@@ -961,14 +1115,15 @@ Successfully created a complete system preset package for Sovol SV08 Max with al
 - 44 Bambu Lab filament profiles as system presets in BambuStudio
 - Complete factory configuration backup with probe calibration
 - Enhanced START_PRINT with parallel heating (3-5 minute time savings)
-- Post-heating nozzle wipe to prevent first layer contamination
+- Purge bucket system for clean filament management (no bed waste)
 - Improved END_PRINT with 10mm filament retraction for easier changes
 - Layer tracking and time estimates on printer display
-- Two optimized print process profiles (0.16mm and 0.20mm)
+- Four optimized print process profiles (0.16mm and 0.20mm for PLA and PETG)
 - BambuStudio machine configuration fully integrated with factory macros
 - Surface quality optimized (98% flow, 150mm/s outer walls, 3000mm/s² accel)
 - EI input shaper calibrated for zero vibration (54.0Hz X, 44.8Hz Y)
-- Comprehensive safety systems (heat creep prevention, idle retraction, emergency recovery)
+- Comprehensive safety systems (heat creep prevention, idle retraction)
+- LOAD_FILAMENT macro enhanced to use purge bucket
 
 **Key Learnings:**
 - Understanding BambuStudio's vendor architecture and inheritance flattening
