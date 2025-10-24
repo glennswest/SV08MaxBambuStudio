@@ -1,12 +1,20 @@
 # Bambu Filament Profiles for Sovol SV08 Max
 
-![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)
+![Version](https://img.shields.io/badge/version-1.1.0--dev-blue.svg)
 ![BambuStudio](https://img.shields.io/badge/BambuStudio-1.9.0.14+-green.svg)
-![Profiles](https://img.shields.io/badge/profiles-44-orange.svg)
+![Profiles](https://img.shields.io/badge/profiles-44%20filament%20%2B%205%20process-orange.svg)
 
-This repository contains converted Bambu Lab filament profiles for use with the Sovol SV08 Max printer in BambuStudio.
+This repository contains converted Bambu Lab filament profiles for use with the Sovol SV08 Max printer in BambuStudio, along with optimized Klipper macros and print process profiles.
 
-**Current Version:** 1.0.0 | [Changelog](CHANGELOG.md)
+**Current Version:** 1.1.0-dev | [Changelog](CHANGELOG.md)
+
+**Key Features:**
+- 44 Bambu Lab filament profiles as system presets
+- 5 optimized print process profiles (PLA + PETG)
+- Purge bucket system - zero bed waste
+- EI input shaper - zero vibrations
+- Parallel heating - 3-5 minute time savings
+- Enhanced safety features
 
 ## Overview
 
@@ -15,28 +23,36 @@ BambuStudio includes comprehensive filament profiles for Bambu Lab printers (P1S
 ## File Structure
 
 ```
-├── Install Sovol Profiles.app.command  # macOS GUI installer (double-click)
-├── Install Sovol Profiles.bat          # Windows GUI installer (double-click)
-├── Install-SovolProfiles.ps1           # Windows PowerShell GUI script
-├── install.sh                          # macOS command-line installer
-├── install.ps1                         # Windows command-line installer
-├── install_demon_essentials.sh         # Demon Klipper Essentials installer
-├── README.md                           # This file
-├── CLAUDE.md                           # Development process documentation
-├── Sovol sv08 max 0.4 nozzle.json     # User machine configuration
-├── test_start_end_macros.gcode        # Test G-code for macro verification
-├── factory_sv08_backup/                # Factory configuration backup
-│   ├── README.md                       # Backup documentation
-│   ├── config/                         # Klipper configuration files
-│   ├── database/                       # Moonraker database
+├── Install Sovol Profiles.app.command         # macOS GUI installer (double-click)
+├── Install Sovol Profiles.bat                 # Windows GUI installer (double-click)
+├── Install-SovolProfiles.ps1                  # Windows PowerShell GUI script
+├── install.sh                                 # macOS command-line installer
+├── install.ps1                                # Windows command-line installer
+├── install_demon_essentials.sh                # Demon Klipper Essentials installer (not recommended)
+├── README.md                                  # This file
+├── CLAUDE.md                                  # Development process documentation
+├── Sovol sv08 max 0.4 nozzle.json            # User machine configuration
+├── test_start_end_macros.gcode               # Test G-code for macro verification
+├── 0.16mm Optimal @Sovol SV08.json           # PLA: High detail profile
+├── 0.20mm Standard @Sovol SV08.json          # PLA: Balanced profile
+├── 0.20mm Fast Print @Sovol SV08.json        # PLA: Quick prototyping profile
+├── 0.16mm Optimal PETG @Sovol SV08.json      # PETG: High detail profile
+├── 0.20mm Standard PETG @Sovol SV08.json     # PETG: Standard profile
+├── PolyLite PLA Pro @Sovol sv08 max 0.4 nozzle.json  # Custom filament profile
+├── Elegoo Rapid PETG @Sovol SV08.json        # Custom filament profile
+├── Elegoo HF Petg.json                        # Custom filament profile
+├── factory_sv08_backup/                       # Factory configuration backup
+│   ├── README.md                              # Backup documentation
+│   ├── config/                                # Klipper configuration files
+│   ├── database/                              # Moonraker database
 │   └── [system information files]
 └── system/
-    ├── Sovol.json                      # Vendor configuration file
+    ├── Sovol.json                             # Vendor configuration file
     └── Sovol/
         ├── machine/
-        │   └── Sovol sv08 max.json    # Machine model definition
+        │   └── Sovol sv08 max.json           # Machine model definition
         └── filament/
-            └── [44 filament profiles]  # All Bambu filament profiles
+            └── [44 filament profiles]         # All Bambu filament profiles
 ```
 
 ## Included Filament Profiles
@@ -159,26 +175,55 @@ This configuration works with the enhanced Klipper macros that include parallel 
 
 ## Print Process Profiles
 
-The repository includes two optimized print process profiles based on Bambu P1P settings:
+The repository includes optimized print process profiles based on Bambu P1P settings:
+
+### PLA Profiles
 
 **0.16mm Optimal @Sovol SV08**:
 - Layer height: 0.16mm
-- High-speed printing: 200mm/s outer walls, 300mm/s inner walls
-- Optimized for quality and detail
+- Outer walls: 150mm/s, Inner walls: 300mm/s
+- Optimized for surface quality and detail
+- Outer wall acceleration: 3000mm/s² (reduced for better finish)
 - 5 top layers, 4 bottom layers
 - 15% infill density
 
 **0.20mm Standard @Sovol SV08**:
 - Layer height: 0.20mm
-- Same high-speed settings as 0.16mm profile
+- Outer walls: 200mm/s, Inner walls: 300mm/s
 - Balanced quality and speed
 - Standard layer height for most prints
+- 15% infill density
 
-Both profiles include:
-- Accelerations: 10000mm/s² default, 5000mm/s² outer walls
+**0.20mm Fast Print @Sovol SV08**:
+- Layer height: 0.20mm
+- Inherits speeds from Standard profile
+- **15% gyroid infill** for quick prototyping
+- **2 shell layers** (top/bottom) for minimum structural integrity
+- Optimized for rapid iteration and non-critical parts
+
+### PETG Profiles
+
+**0.16mm Optimal PETG @Sovol SV08**:
+- Layer height: 0.16mm
+- Outer walls: 130mm/s, Inner walls: 220mm/s (slower than PLA)
+- Reduced speeds for better layer adhesion and less stringing
+- Outer wall acceleration: 3000mm/s²
+- Default acceleration: 8000mm/s²
+
+**0.20mm Standard PETG @Sovol SV08**:
+- Layer height: 0.20mm
+- Outer walls: 130mm/s, Inner walls: 220mm/s
+- Slower speeds prevent PETG stringing issues
+- Better surface finish for translucent materials
+- Initial layer: 40mm/s for excellent bed adhesion
+
+### Common Features
+
+All profiles include:
 - Travel speed: 400mm/s
 - Line widths optimized for 0.4mm nozzle
 - Compatible with all Sovol SV08 Max filament profiles
+- Layer tracking and time estimates on printer display
 
 ### Installing the Machine Configuration
 
@@ -335,9 +380,9 @@ The factory configuration has been enhanced with:
 
 ### Custom Macros
 
-The printer configuration includes enhanced START_PRINT and END_PRINT macros optimized for speed and reliability:
+The printer configuration includes enhanced START_PRINT and END_PRINT macros optimized for speed, reliability, and cleanliness:
 
-**START_PRINT** (Parallel Heating Strategy):
+**START_PRINT** (Parallel Heating + Purge Bucket Strategy):
 - Accepts `EXTRUDER` and `BED` temperature parameters from slicer
 - **Parallel heating**: Starts bed and nozzle heating simultaneously (saves 3-5 minutes)
   - Phase 1: Start bed + preheat nozzle to 150°C (non-blocking)
@@ -347,8 +392,13 @@ The printer configuration includes enhanced START_PRINT and END_PRINT macros opt
 - Performs quad gantry leveling and bed mesh calibration with heated bed
 - **Wipes nozzle** after final heating to remove accumulated ooze
 - Performs filament feed and clog check
-- Draws purge line before print
+- **Purges into bucket** instead of bed (replaces purge line)
+  - 45mm extrusion @ 150mm/s at Z=5mm height
+  - Forms thick poop that drops cleanly into bucket
+  - 1 second dwell + 2.5mm retract to break string
+- **Direct wipe** after purge (no position restore to avoid dragging nozzle)
 - Total startup time: ~5-7 minutes (vs 8-12 minutes serial heating)
+- **Zero filament waste on bed surface**
 
 **END_PRINT**:
 - Retracts filament while hot (**10mm total** - improved for easier filament changes)
@@ -359,6 +409,20 @@ The printer configuration includes enhanced START_PRINT and END_PRINT macros opt
 - Homes X and Y axes
 - Moves to back right corner (X500 Y500) for safety
 - Resets speeds and clears pause state
+
+**PURGE_BUCKET**:
+- Position: X=-7, Y=170, Z=10 (in front of nozzle wiper)
+- Configurable purge amount (default 15mm) and speed
+- Safety checks for minimum temperature
+- Automatic retract after purge to prevent stringing
+- Used by LOAD_FILAMENT macro
+
+**LOAD_FILAMENT**:
+- Saves current position
+- **Moves to purge bucket** before extruding
+- Extrudes 75mm total (45mm @ 300mm/s + 30mm @ 150mm/s)
+- Returns to original position
+- **No more filament blobs on the bed**
 
 **WIPE_NOZZLE**: Quick nozzle wipe macro (no heating) used after M109 to remove ooze
 
@@ -391,15 +455,82 @@ The SV08 Max uses an LDC1612 eddy current probe for Z-homing and bed meshing:
 - **Probe offsets**: X=-19.8mm, Y=-0.75mm, Z=3.50mm
 - **Calibrated settings** preserved in SAVE_CONFIG
 - **Best practices**: Calibrate with heated bed (70°C) for accurate results
+- **Accuracy**: 0.0014mm standard deviation after calibration
+
+### Input Shaper
+
+The printer is calibrated with EI (Extra-Insensitive) input shaper for maximum ringing reduction:
+
+**X Axis**:
+- Shaper type: **EI**
+- Frequency: **54.0 Hz**
+- Vibrations: **0.0%**
+- Smoothing: 0.110
+
+**Y Axis**:
+- Shaper type: **EI**
+- Frequency: **44.8 Hz**
+- Vibrations: **0.0%**
+- Smoothing: 0.160
+
+**Why EI Shaper?**
+- The SV08 Max's large 500x500mm gantry has low resonance frequencies
+- EI shaper provides **zero vibration** at the cost of slight smoothing
+- Alternative: ZV shaper for sharper details (0.4-1.3% residual vibrations)
+- Calibration performed with `SHAPER_CALIBRATE` command
+
+**Trade-offs**:
+- **EI**: Best surface quality, zero ringing, slightly softer fine details
+- **ZV**: Sharpest details, minimal smoothing, very low ringing (0.4-1.3%)
+
+### Safety Features
+
+**Heat Creep Prevention**:
+- Hotend cooling fan activates at **35°C** (reduced from 45°C factory setting)
+- Starts well before filament softening temperature (~60°C for PLA)
+- Prevents heat migration into cold zone
+- Reduces risk of clogs during long prints
+
+**Idle Timeout Protection**:
+- Automatically retracts **10mm** before shutdown if extruder is hot
+- Prevents filament from sitting in hot nozzle during cooldown
+- Reduces oozing, clogging, and filament degradation
+- Timeout: 30 minutes of inactivity (paused prints excluded)
+
+**Emergency Recovery** (removed):
+- Initial automatic recovery system removed due to grinding issues
+- Manual recovery available via `FORCE_MOVE` commands if needed
+- Always home axes after emergency stop when safe
+
+### Surface Quality Optimization
+
+The profiles have been tuned for excellent surface finish on the large-format SV08 Max:
+
+**PolyLite PLA Pro Profile**:
+- Flow rate: **98%** (increased from 93% to prevent under-extrusion)
+
+**0.16mm Optimal Profile**:
+- Outer wall speed: **150mm/s** (reduced from 200mm/s)
+- Outer wall acceleration: **3000mm/s²** (reduced from 5000mm/s²)
+- Better layer adhesion and smoother surfaces
+- Reduces ringing on large gantry system
+
+**Key Insight**: Large format printers need more conservative outer wall settings than small printers due to:
+- Lower resonance frequencies (37-54Hz vs 80-100Hz on small printers)
+- Greater mass in motion
+- Longer belt paths with more flex
 
 ## Future Enhancements
 
 Potential additions:
 - Additional nozzle sizes (0.2mm, 0.6mm, 0.8mm)
-- Print process profiles optimized for SV08 Max
+- ✅ ~~Print process profiles optimized for SV08 Max~~ - **Completed** (5 profiles: PLA 0.16mm/0.20mm/Fast, PETG 0.16mm/0.20mm)
 - Custom bed models and textures
-- Additional third-party filament profiles
-- Advanced Demon Essentials configuration templates
+- ✅ ~~Additional third-party filament profiles~~ - **Completed** (PolyLite PLA Pro, Elegoo PETG)
+- ✅ ~~Input shaper calibration~~ - **Completed** (EI @ 54.0Hz X, 44.8Hz Y)
+- ✅ ~~Purge bucket system~~ - **Completed** (Zero bed waste)
+- ✅ ~~Surface quality optimization~~ - **Completed** (Flow rates, speeds, accelerations tuned)
+- Advanced Demon Essentials configuration templates (not recommended due to hardware incompatibility)
 
 ## License
 
@@ -420,12 +551,24 @@ See [CHANGELOG.md](CHANGELOG.md) for detailed version history and release notes.
 
 ### Release Summary
 
+- **v1.1.0** (Unreleased) - Performance and Quality Update
+  - **5 print process profiles**: PLA (0.16mm Optimal, 0.20mm Standard, 0.20mm Fast Print) + PETG (0.16mm Optimal, 0.20mm Standard)
+  - **Purge bucket system**: Zero filament waste on bed, clean START_PRINT sequence
+  - **Input shaper calibration**: EI @ 54.0Hz X / 44.8Hz Y for zero vibrations
+  - **Surface quality optimization**: Tuned flow rates, speeds, and accelerations for large format printing
+  - **Safety enhancements**: Heat creep prevention (35°C fan activation), idle timeout with 10mm retraction
+  - **Enhanced macros**: PURGE_BUCKET, improved LOAD_FILAMENT, optimized START_PRINT sequence
+  - **Custom filament profiles**: PolyLite PLA Pro, Elegoo Rapid PETG
+  - **Layer tracking**: Real-time progress display on printer screen with time estimates
+  - **Parallel heating**: 3-5 minute startup time savings
+
 - **v1.0.0** (2024-09-29) - Initial release
   - 44 Bambu filament profiles
   - System vendor configuration
   - Machine model definition
   - GUI and CLI installers for macOS and Windows
   - Complete documentation
+  - Factory configuration backup with eddy probe calibration
 
 ## Credits
 
