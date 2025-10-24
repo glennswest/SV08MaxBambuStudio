@@ -1,0 +1,19 @@
+{
+    "bottom_color_penetration_layers": "0",
+    "bottom_shell_layers": "2",
+    "from": "User",
+    "inherits": "0.20mm Standard @Sovol SV08",
+    "name": "0.20mm Fast Print @Sovol SV08",
+    "print_extruder_id": [
+        "1"
+    ],
+    "print_extruder_variant": [
+        "Direct Drive Standard"
+    ],
+    "print_settings_id": "0.20mm Fast Print @Sovol SV08",
+    "sparse_infill_density": "15%",
+    "sparse_infill_pattern": "gyroid",
+    "top_color_penetration_layers": "0",
+    "top_shell_layers": "2",
+    "version": "1.9.0.23"
+}
